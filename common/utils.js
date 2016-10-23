@@ -1,4 +1,4 @@
-var exceptions = require('../../common/model/exceptions');
+var exceptions = require('./model/exceptions');
 /**
  * Function compose
  * @param  {[Function]} g
@@ -15,7 +15,27 @@ function compose(f, g) {
  * @return {Boolean}
  */
 function isUndefined(obj) {
-    return typeof obj === 'undefined';
+    return obj === undefined;
+}
+/**
+ * Simple function test
+ * @param  {[Function]}  fn
+ * @return {Boolean}
+ */
+function isFunction(fn) {
+    return typeof fn === 'function';
+}
+
+function assertUndefined(obj, msg){
+    if(isUndefined(obj)){
+        throw new TypeError(msg);
+    }
+}
+
+function assertFunction(obj, msg){
+    if(!isFunction(obj)){
+        throw new TypeError(msg);
+    }
 }
 /**
  * check object keys
@@ -68,3 +88,5 @@ exports.hasKeys = hasKeys;
 exports.compose = compose;
 exports.isUndefined = isUndefined;
 exports.checkParam = checkParam;
+exports.assertUndefined = assertUndefined;
+exports.assertFunction = assertFunction;

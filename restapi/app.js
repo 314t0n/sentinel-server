@@ -109,4 +109,6 @@ var server = app.listen(app.get('port'), config.host, function() {
     logger.log('info', 'Express server listening on port ' + server.address().port);
 });
 
-module.exports = app;
+module.exports = function(){
+
+};

@@ -1,5 +1,6 @@
 var communicationFactory = require('./communication');
 var senecaFactory = require('./seneca.factory');
+var logger = require('../logger').app;
 /**
  * Factory method for Communication with Seneca injected.
  * 
@@ -8,6 +9,6 @@ var senecaFactory = require('./seneca.factory');
  */
 module.exports = function(options){
 
-	return communicationFactory(senecaFactory(options));
+	return communicationFactory(senecaFactory(options), logger);
 }
 
