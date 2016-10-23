@@ -66,10 +66,10 @@ describe("Communication", function() {
 			var cmd = "test";		
 			var params = {};
 			// WHEN
-			underTest.command(cmd, params);	
+			underTest.command(cmd, params, emptyFunction);	
 
 			// THEN		
-			expect( seneca.act ).toHaveBeenCalledWith(jasmine.objectContaining({cmd: cmd, params: params}), logger.error);
+			expect( seneca.act ).toHaveBeenCalledWith(jasmine.objectContaining({cmd: cmd, params: params}), emptyFunction);
 		});
 	});
 
@@ -83,6 +83,19 @@ describe("Communication", function() {
 
 			// THEN		
 			expect( methodToTest ).toThrowError(TypeError, 'Command is missing!');
+		});	
+	});	
+
+	describe(".command()", function() {
+		it("Should throw error when callback function is not provided", function() {
+			// GIVEN
+			// WHEN			
+			var methodToTest = function() {
+				underTest.command('cmd', {});
+			}
+
+			// THEN		
+			expect( methodToTest ).toThrowError(TypeError, 'Handler is not a function!');
 		});
 	});
 });

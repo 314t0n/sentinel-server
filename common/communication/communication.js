@@ -12,13 +12,16 @@ Communication.prototype = Object.create(null);
  * Publish to specific command.
  * 
  * @param  {String} command to publish.
- * @param  {Object} params added to the command.
+ * @param  {Object} [optional] params added to the command.
+ * @param  {Function} handler function called with return params.
  * @return {Void}
  */
  Communication.prototype.command = function command(cmd, params){
  	utils.assertUndefined(cmd, 'Command is missing!');
+ 	var handler = arguments[arguments.length - 1];
+ 	utils.assertFunction(handler, 'Handler is not a function!');
 
- 	this.seneca.act({cmd: cmd, params: params}, this.logger.error);
+ 	this.seneca.act({cmd: cmd, params: params}, handler);
  }
 /**
  * Subscribe to specific command.
@@ -32,8 +35,8 @@ Communication.prototype = Object.create(null);
  	utils.assertUndefined(handler, 'Handler is missing!');
  	utils.assertFunction(handler, 'Handler is not a function!');
 
- 	this.seneca.add({cmd: cmd}, function(msg){
- 		handler(msg.params);
+ 	this.seneca.add({cmd: cmd}, function(msg, response){
+ 		handler(msg.params, response);
  	});
  }
 /**
