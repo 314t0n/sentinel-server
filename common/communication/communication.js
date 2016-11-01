@@ -13,15 +13,23 @@ Communication.prototype = Object.create(null);
  * 
  * @param  {String} command to publish.
  * @param  {Object} [optional] params added to the command.
- * @param  {Function} handler function called with return params.
+ * @param  {Function} [optional] success callback function called with return params.
+ * @param  {Function} [optional] error callback function called with error object.
  * @return {Void}
  */
- Communication.prototype.command = function command(cmd, params){
+ Communication.prototype.command = function command(cmd, params, resolve, reject){
  	utils.assertUndefined(cmd, 'Command is missing!');
- 	var handler = arguments[arguments.length - 1];
- 	utils.assertFunction(handler, 'Handler is not a function!');
+ 	this.seneca.act({cmd: cmd, params: params}, responseHandler(resolve, reject));
+ }
 
- 	this.seneca.act({cmd: cmd, params: params}, handler);
+ function responseHandler(resolve, reject){
+ 	return function(err, msg){
+ 		if(err){
+ 			reject && reject(err);
+ 			return;
+ 		}
+ 		resolve && resolve(msg);
+ 	}
  }
 /**
  * Subscribe to specific command.
@@ -38,6 +46,21 @@ Communication.prototype = Object.create(null);
  	this.seneca.add({cmd: cmd}, function(msg, response){
  		handler(msg.params, response);
  	});
+ }
+/**
+ * Resolve/Reject commands	
+ * @param  {Function} resolve success callback
+ * @param  {Function} reject  error callback
+ * @return {Function}         command response handler
+ */
+ Communication.prototype.responseHandler = function responseHandler(resolve, reject){
+ 	return function(err, msg){
+ 		if(err){
+ 			reject(err);
+ 			return;
+ 		}
+ 		resolve(msg);
+ 	}
  }
 /**
  * Creates new Communication instance.

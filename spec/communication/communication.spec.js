@@ -9,7 +9,7 @@ describe("Communication", function() {
 	var underTest = Communication(seneca, logger);
 
 	describe(".on()", function() {
-		it("Should call seneca .add()", function() {
+		it("should call seneca .add()", function() {
 			// GIVEN
 			var cmd = "test";		
 
@@ -19,10 +19,8 @@ describe("Communication", function() {
 			// THEN		
 			expect( seneca.add ).toHaveBeenCalledWith(jasmine.objectContaining({cmd: cmd}), jasmine.any(Function));
 		});
-	});
 
-	describe(".on()", function() {
-		it("Should throw error when command is not provided", function() {
+		it("should throw error when command is not provided", function() {
 			// GIVEN
 			// WHEN			
 			var methodToTest = function() {
@@ -32,10 +30,8 @@ describe("Communication", function() {
 			// THEN		
 			expect( methodToTest ).toThrowError(TypeError, 'Command is missing!');
 		});
-	});
 
-	describe(".on()", function() {
-		it("Should throw error when callback is not provided", function() {
+		it("should throw error when callback is not provided", function() {
 			// GIVEN
 			// WHEN			
 			var methodToTest = function() {
@@ -45,10 +41,8 @@ describe("Communication", function() {
 			// THEN		
 			expect( methodToTest ).toThrowError(TypeError, 'Handler is missing!');
 		});
-	});
 
-	describe(".on()", function() {
-		it("Should throw error when callback is not a function", function() {
+		it("should throw error when callback is not a function", function() {
 			// GIVEN
 			// WHEN			
 			var methodToTest = function() {
@@ -61,7 +55,8 @@ describe("Communication", function() {
 	});
 
 	describe(".command()", function() {
-		it("Should call seneca .act()", function() {
+
+		it("should call seneca .act()", function() {
 			// GIVEN
 			var cmd = "test";		
 			var params = {};
@@ -69,12 +64,51 @@ describe("Communication", function() {
 			underTest.command(cmd, params, emptyFunction);	
 
 			// THEN		
-			expect( seneca.act ).toHaveBeenCalledWith(jasmine.objectContaining({cmd: cmd, params: params}), emptyFunction);
+			expect( seneca.act ).toHaveBeenCalledWith(jasmine.objectContaining({cmd: cmd, params: params}), jasmine.any(Function));
 		});
-	});
 
-	describe(".command()", function() {
-		it("Should throw error when command is not provided", function() {
+		it("should call resolve", function() {
+			// GIVEN
+			var cmd = "test";		
+			var params = {};
+			var expected = 'expected';
+			var resolve = jasmine.createSpy().and.callFake(function(result) {
+				expect(result).toBe(expected);
+			});
+
+			seneca.act.and.callFake(function(params, callback){
+				callback(null, expected); // err, msg
+			});
+
+			// WHEN
+			underTest.command(cmd, params, resolve);	
+
+			// THEN	
+			expect(resolve).toHaveBeenCalledWith(expected);	
+		});
+
+		it("should call reject when error occurs in seneca", function() {
+			// GIVEN
+			var cmd = "test";		
+			var params = {};
+			var expected = 'error';
+			var reject = jasmine.createSpy().and.callFake(function(result) {
+				expect(result).toBe(expected);
+			});
+
+			seneca.act.and.callFake(function(params, callback){
+				callback(expected, {}); // err, msg
+			});
+
+			// WHEN
+			underTest.command(cmd, params, emptyFunction, reject);	
+
+			// THEN	
+			expect(reject).toHaveBeenCalledWith(expected);	
+		});
+
+
+		it("should throw error when command is not provided", function() {
 			// GIVEN
 			// WHEN			
 			var methodToTest = function() {
@@ -84,18 +118,6 @@ describe("Communication", function() {
 			// THEN		
 			expect( methodToTest ).toThrowError(TypeError, 'Command is missing!');
 		});	
-	});	
 
-	describe(".command()", function() {
-		it("Should throw error when callback function is not provided", function() {
-			// GIVEN
-			// WHEN			
-			var methodToTest = function() {
-				underTest.command('cmd', {});
-			}
-
-			// THEN		
-			expect( methodToTest ).toThrowError(TypeError, 'Handler is not a function!');
-		});
 	});
 });
