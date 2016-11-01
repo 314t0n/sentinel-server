@@ -8,11 +8,10 @@ var actCom = com({
 
 var COMMAND = "asd";
 
-actCom.on(COMMAND, function(params){
-	console.log(params);
-	setTimeout(function(){
-		actCom.command(COMMAND, {"tset":"gset"});
-	}, 1000);
+actCom.on(COMMAND, function(params, response){
+	response(null, {'vaz': 'app'});
 });
 
-actCom.command(COMMAND, {"szav":"asd"});
+actCom.command(COMMAND,{}, function(err, msg){
+	console.log('ez gyött: ', msg);
+});

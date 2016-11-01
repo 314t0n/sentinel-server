@@ -63,6 +63,7 @@ function checkParam(param, name) {
 }
 /**
  * Check token
+ * TODO this surely not belong here!
  * @param  {[type]}   req  [description]
  * @param  {[type]}   res  [description]
  * @param  {Function} next [description]

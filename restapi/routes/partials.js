@@ -1,19 +1,23 @@
 var express = require('express');
-var router = express.Router();
 
-var authorizationHelper = require('../utils/utils').authorizationHelper;
+function PartialsRouter(authorizationHelper){
+	var router = express.Router();
 
-router.get('/404', function(req, res) {
-    res.render('partials/404');
-});
+	router.get('/404', function(req, res) {
+		res.render('partials/404');
+	});
 
-router.get('/login', function(req, res) {
-    res.render('partials/login');
-});
+	router.get('/login', function(req, res) {
+		res.render('partials/login');
+	});
 
-router.get('/:name', authorizationHelper, function(req, res) {
-    var name = req.params.name;
-    res.render('partials/' + name);
-});
+	router.get('/:name', authorizationHelper, function(req, res) {
+		res.render('partials/' + req.params.name);
+	});
 
-module.exports = router;
+	return router;
+}
+
+module.exports = function(params){
+	return new PartialsRouter(params.authorizationHelper);
+}

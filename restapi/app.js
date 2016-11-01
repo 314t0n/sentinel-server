@@ -9,7 +9,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var auth = require('basic-auth');
 var configs = require('./config');
-var utils = require('./utils/utils');
+var utils = require('../common/utils');
 var config = configs.dev; // host/port config
 var logger = require('../common/logger').app;
 var argumentHandler = require('./utils/argument-handler');
@@ -18,12 +18,15 @@ var argumentHandler = require('./utils/argument-handler');
 
 // set args in global config object
 argumentHandler.setConfig(config);
+
+var BASE_URL = "http://" + config.host + ":" + config.port + "/";
+
 // global var for templates
-app.locals.baseUrl = 'http://' + config.host + ':' + config.port + '/';
+app.locals.baseUrl = BASE_URL;
 
 // View engine setup
 
-app.set('views', path.join(__dirname, '../public/views'));
+app.set('views', path.join(__dirname, './public/views'));
 app.set('view engine', 'jade');
 app.set('view cache', 'disable');
 //
@@ -35,7 +38,7 @@ app.use(cookieParser());
 
 // Public folders
 
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, './public')));
 app.use('/bower_components', express.static(path.join(__dirname, '../bower_components')));
 app.use('/js/bower', express.static(path.join(__dirname, '../bower_components')));
 
@@ -52,25 +55,32 @@ app.use(function(req, res, next) {
 
 // Router
 
-var indexRoute = require('./routes/index');
-var partialsRoute = require('./routes/partials');
-var authRoute = require('./routes/auth');
+var APP_TITLE = 'Sentinel';
+var indexRoute = require('./routes/index')(APP_TITLE, BASE_URL);
+var partialsRoute = require('./routes/partials')({
+    authorizationHelper: utils.authorizationHelper
+});
+
+var authRoute = require('./routes/auth')({
+    authorizationHelper: utils.authorizationHelper,
+    logger: logger,
+    db: {}
+});
+/*
 var imagelogRoute = require('./routes/api/imagelog');
 var notificationRoute = require('./routes/api/notification');
-var configRoute = require('./routes/api/config');
-
-indexRoute.setBaseUrl("http://" + config.host + ":" + config.port + "/");
+var configRoute = require('./routes/api/config');*/
 
 // Api routing
 
-app.use('/api/v1/imagelog', imagelogRoute);
+/*app.use('/api/v1/imagelog', imagelogRoute);
 app.use('/api/v1/notification', notificationRoute);
 app.use('/api/v1/config', configRoute);
-app.use('/api/v1/auth', authRoute);
+app.use('/api/v1/auth', authRoute);*/
 
 // partials
 
-app.use('/partials', partialsRoute);
+/*app.use('/partials', partialsRoute);*/
 
 // catch everything else
 
@@ -106,7 +116,7 @@ process.on('uncaughtException', function(err) {
 });
 
 var server = app.listen(app.get('port'), config.host, function() {
-    logger.log('info', 'Express server listening on port ' + server.address().port);
+    logger.log('info', 'Running on ' + config.host + ':' + server.address().port);
 });
 
 module.exports = function(){

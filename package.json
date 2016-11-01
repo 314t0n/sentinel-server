@@ -41,6 +41,7 @@
     "socketio-jwt": "^2.3.5"
   },
   "devDependencies": {
+    "frisby": "^0.8.5",
     "jasmine": "^2.5.2"
   }
 }
