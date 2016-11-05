@@ -1,8 +1,8 @@
 /**
  * Module dependencies
  */
-var hasKeys = require('../../utils').hasKeys;
-var logger = require('../../logger').app;
+var hasKeys = require('../../common/utils').hasKeys;
+var logger = require('../../common/logger').app;
 var extend = require('extend');
 
 function setLimit(query) {

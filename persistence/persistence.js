@@ -1,18 +1,22 @@
-module.exports = function(options) {
-	var seneca = this;
+var communicationFactory = require('../common/communication/communication.factory');
+var database = require('./api/database');
 
-	seneca.add({cmd:'save'}, handlers.save);
+exports.start = function(opt){
 
+	var opt = opt || {};
+
+	var persistenceCommunication = communicationFactory({
+		type: 'http',
+		port: opt.port || '8001',
+		host: opt.host ||'localhost'
+	});
+
+	var dbProvider = require('./concrete/mongo')({
+		url: 'localhost:27017'
+	});
+
+	database({
+		provider:dbProvider,
+		communication: persistenceCommunication
+	});
 }
-
-var handlers = (function(){
-
-	return {
-
-		save: function(args, done){
-			done(null, { msg: 'ponged'})
-		}
-
-	}
-
-})();
