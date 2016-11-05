@@ -2,25 +2,25 @@ var Communication = require('../../common/communication/communication');
 
 describe("Communication", function() {
 
-	var seneca = jasmine.createSpyObj('seneca', ['add', 'act']);
+	var seneca = jasmine.createSpyObj('seneca', ['add', 'act', 'close']);
 	var logger = jasmine.createSpyObj('logger', ['error']);
 	var emptyFunction = function(){};
 
-	var underTest = Communication(seneca, logger);
+	var underTest = Communication(seneca, logger, 'test');
 
 	describe(".on()", function() {
 		it("should call seneca .add()", function() {
 			// GIVEN
-			var cmd = "test";		
+			var opt = {cmd: 'test', role: 'test'};		
 
 			// WHEN
-			underTest.on(cmd, emptyFunction);	
+			underTest.on(opt, emptyFunction);	
 
 			// THEN		
-			expect( seneca.add ).toHaveBeenCalledWith(jasmine.objectContaining({cmd: cmd}), jasmine.any(Function));
+			expect( seneca.add ).toHaveBeenCalledWith(jasmine.objectContaining(opt), jasmine.any(Function));
 		});
 
-		it("should throw error when command is not provided", function() {
+		it("should throw error when options is not provided", function() {
 			// GIVEN
 			// WHEN			
 			var methodToTest = function() {
@@ -28,14 +28,14 @@ describe("Communication", function() {
 			}
 
 			// THEN		
-			expect( methodToTest ).toThrowError(TypeError, 'Command is missing!');
+			expect( methodToTest ).toThrowError(TypeError, 'Options is missing!');
 		});
 
 		it("should throw error when callback is not provided", function() {
 			// GIVEN
 			// WHEN			
 			var methodToTest = function() {
-				underTest.on('testCommand');
+				underTest.on({cmd:'testCommand'});
 			}
 
 			// THEN		
@@ -46,7 +46,7 @@ describe("Communication", function() {
 			// GIVEN
 			// WHEN			
 			var methodToTest = function() {
-				underTest.on('testCommand', {});
+				underTest.on({cmd:'testCommand'}, {});
 			}
 
 			// THEN		
@@ -58,19 +58,17 @@ describe("Communication", function() {
 
 		it("should call seneca .act()", function() {
 			// GIVEN
-			var cmd = "test";		
-			var params = {};
+			var opt = {cmd:'test', params: 'test', role: 'test'};	
 			// WHEN
-			underTest.command(cmd, params, emptyFunction);	
+			underTest.command(opt, emptyFunction);	
 
 			// THEN		
-			expect( seneca.act ).toHaveBeenCalledWith(jasmine.objectContaining({cmd: cmd, params: params}), jasmine.any(Function));
+			expect( seneca.act ).toHaveBeenCalledWith(jasmine.objectContaining(opt), jasmine.any(Function));
 		});
 
 		it("should call resolve", function() {
 			// GIVEN
-			var cmd = "test";		
-			var params = {};
+			var opt = {cmd:'test', params: 'test', role: 'test'};			
 			var expected = 'expected';
 			var resolve = jasmine.createSpy().and.callFake(function(result) {
 				expect(result).toBe(expected);
@@ -81,7 +79,7 @@ describe("Communication", function() {
 			});
 
 			// WHEN
-			underTest.command(cmd, params, resolve);	
+			underTest.command(opt, resolve);	
 
 			// THEN	
 			expect(resolve).toHaveBeenCalledWith(expected);	
@@ -89,8 +87,7 @@ describe("Communication", function() {
 
 		it("should call reject when error occurs in seneca", function() {
 			// GIVEN
-			var cmd = "test";		
-			var params = {};
+			var opt = {cmd:'test', params: 'test', role: 'test'};			
 			var expected = 'error';
 			var reject = jasmine.createSpy().and.callFake(function(result) {
 				expect(result).toBe(expected);
@@ -101,14 +98,14 @@ describe("Communication", function() {
 			});
 
 			// WHEN
-			underTest.command(cmd, params, emptyFunction, reject);	
+			underTest.command(opt, emptyFunction, reject);	
 
 			// THEN	
 			expect(reject).toHaveBeenCalledWith(expected);	
 		});
 
 
-		it("should throw error when command is not provided", function() {
+		it("should throw error when options is not provided", function() {
 			// GIVEN
 			// WHEN			
 			var methodToTest = function() {
@@ -116,8 +113,38 @@ describe("Communication", function() {
 			}
 
 			// THEN		
-			expect( methodToTest ).toThrowError(TypeError, 'Command is missing!');
+			expect( methodToTest ).toThrowError(TypeError, 'Options is missing!');
 		});	
+
+	});
+
+	describe(".close()", function() {
+
+		it("should call seneca .close()", function() {
+			// GIVEN
+			// WHEN
+			underTest.close(emptyFunction);	
+
+			// THEN		
+			expect( seneca.close ).toHaveBeenCalledWith(jasmine.any(Function));
+		});
+
+		it("should call done when seneca close called", function() {
+			// GIVEN
+			var callback = jasmine.createSpy().and.callFake(function(result) {
+			});
+
+			seneca.close.and.callFake(function(){
+				callback(); 
+			});
+
+			// WHEN
+			underTest.close(callback);	
+
+			// THEN	
+			expect(callback).toHaveBeenCalled();	
+		});
+
 
 	});
 });
