@@ -76,6 +76,7 @@ module.exports = function (grunt) {
                 },
                 // spec files
                 specs: [
+                    'spec/integration-test/**/*.js',
                     'lib/**/spec/**/*.js',
                     'spec/**/*.js'
                 ]
