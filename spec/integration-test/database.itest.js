@@ -33,14 +33,15 @@ describe("Database Integration Test", function () {
     });
 
     describe("add users", function () {
-        it("should call ", function (done) {
-            // GIVEN
-            var user = {
-                email: 'test@test.com',
-                name: 'test',
-                password: 'hunter'
-            };
 
+        var user = {
+            email: 'test@test.com',
+            name: 'test',
+            password: 'hunter'
+        };
+
+        it("should add new user", function (done) {
+            // GIVEN
             var resolve = jasmine.createSpy().and.callFake(function (result) {
                 delete result._id;
                 expect(result).toEqual(user);
@@ -48,9 +49,25 @@ describe("Database Integration Test", function () {
             });
 
             // WHEN
-            underTest.command({cmd: EVENTS.DB.USERS.ADD, params: { user: user }, role: 'db'}, resolve);
+            var command = underTest.command(EVENTS.DB.USERS.ADD, {user: user}, 'db');
 
             // THEN
+            command.then(resolve);
+        });
+
+        it("should find newly added user by email", function (done) {
+            // GIVEN
+            var resolve = jasmine.createSpy().and.callFake(function (result) {
+                delete result._id;
+                expect(result).toEqual(user);
+                done();
+            });
+
+            // WHEN
+            var command = underTest.command(EVENTS.DB.USERS.FIND, user.email, 'db');
+
+            // THEN
+            command.then(resolve);
         });
     });
 
