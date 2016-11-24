@@ -1,39 +1,57 @@
-var db = require('../../persistence/persistence');
-var EVENTS = require('../../common/events').EVENTS;
-var communicationFactory = require('../../common/communication/communication.factory');
+var PersistenceServiceFactory = require('sentinel-persistence');
+var EVENTS = require('sentinel-communication').EVENTS;
+var communicationFactory = require('sentinel-communication').communicationFactory();
 
 var connection = {
-	type: 'http',
-	port: '8001',
-	host: 'localhost'
+    type: 'http',
+    port: '8001',
+    host: 'localhost'
 };
 
-/*describe("Database Integration Test", function() {
+describe("Database Integration Test", function () {
 
-	db.start(connection);
-	var underTest = communicationFactory(connection);
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 10 * 2;
 
-	describe("add users", function() {
-		it("should call ", function() {
-			// GIVEN
-			var user = {
-				email: 'test@test.com',
-				name: 'test',
-				password: 'hunter'
-			};
+    var underTest; // communication
+    var persistenceService;
+    // setup undertest objects asynchronously
+    beforeEach(function (done) {
+        communicationFactory.createAsync({role: 'test', isbase: true}, function (err, communication) {
+            underTest = communication;
+            PersistenceServiceFactory.createService({role: 'db'}, {}, function (service) {
+                persistenceService = service;
+                done();
+            });
+        });
+    });
 
-			var resolve = jasmine.createSpy().and.callFake(function(result) {
-				console.log(result)
-				expect(result).toBe(expected);
-			});	
+    afterEach(function (done) {
+        underTest.close(function () {
+            persistenceService.close();
+            done();
+        });
+    });
 
+    describe("add users", function () {
+        it("should call ", function (done) {
+            // GIVEN
+            var user = {
+                email: 'test@test.com',
+                name: 'test',
+                password: 'hunter'
+            };
 
-			// WHEN
-			underTest.command(EVENTS.DB.USERS.ADD, {user: user}, resolve);
+            var resolve = jasmine.createSpy().and.callFake(function (result) {
+                delete result._id;
+                expect(result).toEqual(user);
+                done();
+            });
 
-			// THEN		
-			expect(resolve).toHaveBeenCalledWith(user);	
-		});
-	});
+            // WHEN
+            underTest.command({cmd: EVENTS.DB.USERS.ADD, params: { user: user }, role: 'db'}, resolve);
 
-});*/
+            // THEN
+        });
+    });
+
+});

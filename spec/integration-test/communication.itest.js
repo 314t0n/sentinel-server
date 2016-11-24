@@ -1,79 +1,91 @@
-var db = require('../../persistence/persistence');
-var EVENTS = require('../../common/events').EVENTS;
-var communicationFactory = require('../../common/communication/communication.factory')();
+var communicationFactory = require('sentinel-communication').communicationFactory();
 
-describe("Commnuication Integration Test", function() {
+describe("Commnuication Integration Test", function () {
 
-	jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 10 * 2;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 10 * 2;
 
-	var underTestA;
-	var underTestB; 
-	// setup undertest objects asynchronously
-	beforeEach(function(done) {
-		communicationFactory.createAsync({role: 'testA', isbase: true}, function(err, communication){
-			underTestA = communication;
+    var ROLES = {
+        A: 'testA',
+        B: 'testB'
+    }
 
-			communicationFactory.createAsync({role: 'testB'}, function(err, communication){
-				underTestB = communication;
-				done();
-			});
-		});
-	});
-	// close undertest objects asynchronously
-	afterEach(function(done) {
-		underTestA.close(function(){
-			underTestB.close(function(){
-				done();
-			});
-		});
-	});
+    var underTestA;
+    var underTestB;
+    // setup undertest objects asynchronously
+    beforeEach(function (done) {
+        communicationFactory.createAsync({role: ROLES.A, isbase: true}, function (err, communication) {
+            underTestA = communication;
 
-	describe("sending and receving messages", function() {
-		it("A should ping B", function(done) {
-			// GIVEN
-			var ping = 'ping';
-			var pong = 'pong';
+            communicationFactory.createAsync({role: ROLES.B}, function (err, communication) {
+                underTestB = communication;
+                done();
+            });
+        });
+    });
+    // close undertest objects asynchronously
+    afterEach(function (done) {
+        underTestA.close(function () {
+            underTestB.close(function () {
+                done();
+            });
+        });
+    });
 
-			// WHEN
-			underTestB.on({cmd: 'test', role:'testB'}, function(params, response){
-				expect(params.message).toBe(ping);
-				response(null, {response:pong});
-			});
+    describe("sending and receving messages", function () {
+        it("A should ping B", function (done) {
+            // GIVEN
+            var ping = 'ping';
+            var pong = 'pong';
 
-			// THEN	
-			
-			underTestA.command({cmd: 'test', params: {message: ping}, role:'testB'}, function(result){
-				expect(result.response).toBe(pong);
-				done();
-			});
-		});
+            // WHEN
+            underTestB.on('test', ROLES.B, function (params, response) {
+                expect(params.message).toBe(ping);
+                response(null, {response: pong});
+            });
 
-		it("A and B should able to send and receive message from each other", function(done) {
-			// GIVEN
-			var fromAtoB = 'hello B';
-			var fromBtoA = 'hello A';
+            // THEN
 
-			// WHEN
-			underTestA.on({cmd: 'toA', role:'testA'}, function(params, response){
-				expect(params.message).toBe(fromBtoA);
-				response(null, params);
-			});	
+            underTestA.command('test', {message: ping}, ROLES.B)
+                .then(function (result) {
+                    expect(result.response).toBe(pong);
+                    done();
+                });
+        });
 
-			underTestB.on({cmd: 'toB', role:'testB'}, function(params, response){
-				expect(params.message).toBe(fromAtoB);
-				response(null, params);
-			});
+        it("A and B should able to send and receive message from each other", function (done) {
+            // GIVEN
+            var fromAtoB = 'hello B';
+            var fromBtoA = 'hello A';
+            var EVENTS = {
+                TO: {
+                    A: 'toA',
+                    B: 'toB'
+                }
+            }
 
-			// THEN	
-			
-			underTestA.command({cmd: 'toB', params: {message: fromAtoB}, role:'testB'}, function(result){
-				expect(result.message).toBe(fromAtoB);
+            // WHEN
+            underTestA.on(EVENTS.TO.A, ROLES.A, function (params, response) {
+                expect(params.message).toBe(fromBtoA);
+                response(null, params);
+            });
 
-				underTestB.command({cmd: 'toA', params: {message: fromBtoA}, role:'testA'}, function(result){
-					expect(result.message).toBe(fromBtoA);
-					done();
-				});
-			});
-		});
-	});
+            underTestB.on(EVENTS.TO.B, ROLES.B, function (params, response) {
+                expect(params.message).toBe(fromAtoB);
+                response(null, params);
+            });
+
+            // THEN
+
+            underTestA.command(EVENTS.TO.B, {message: fromAtoB}, ROLES.B)
+                .then(function (result) {
+                    expect(result.message).toBe(fromAtoB);
+
+                    underTestB.command(EVENTS.TO.A, {message: fromBtoA}, ROLES.A)
+                        .then(function (result) {
+                            expect(result.message).toBe(fromBtoA);
+                            done();
+                        });
+                });
+        });
+    });
 });
