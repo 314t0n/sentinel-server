@@ -1,5 +1,6 @@
 var PersistenceServiceFactory = require('sentinel-persistence');
 var EVENTS = require('sentinel-communication').EVENTS;
+var models = require('sentinel-communication').models;
 var communicationFactory = require('sentinel-communication').communicationFactory();
 
 var connection = {
@@ -32,7 +33,7 @@ describe("Database Integration Test", function () {
         });
     });
 
-    describe("add users", function () {
+    describe("user managment", function () {
 
         var user = {
             email: 'test@test.com',
@@ -43,13 +44,13 @@ describe("Database Integration Test", function () {
         it("should add new user", function (done) {
             // GIVEN
             var resolve = jasmine.createSpy().and.callFake(function (result) {
-                delete result._id;
+                user._id = result._id;
                 expect(result).toEqual(user);
                 done();
             });
 
             // WHEN
-            var command = underTest.command(EVENTS.DB.USERS.ADD, {user: user}, 'db');
+            var command = underTest.command(EVENTS.DB.USERS.ADD, user, 'db');
 
             // THEN
             command.then(resolve);
@@ -58,13 +59,26 @@ describe("Database Integration Test", function () {
         it("should find newly added user by email", function (done) {
             // GIVEN
             var resolve = jasmine.createSpy().and.callFake(function (result) {
-                delete result._id;
                 expect(result).toEqual(user);
                 done();
             });
 
             // WHEN
             var command = underTest.command(EVENTS.DB.USERS.FIND, user.email, 'db');
+
+            // THEN
+            command.then(resolve);
+        });
+
+        it("should remove newly added user by id", function (done) {
+            // GIVEN
+            var resolve = jasmine.createSpy().and.callFake(function (result) {
+                expect(result.ok).toBe(1);
+                done();
+            });
+
+            // WHEN
+            var command = underTest.command(EVENTS.DB.USERS.REMOVE, user, 'db');
 
             // THEN
             command.then(resolve);
