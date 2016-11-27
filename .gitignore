@@ -1,3 +1,6 @@
 node_modules
 playground
 *.iml
+bin
+logs
+build
