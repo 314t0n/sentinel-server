@@ -64,13 +64,46 @@ describe("Database Integration Test", function () {
             });
 
             // WHEN
-            var command = underTest.command(EVENTS.DB.USERS.FIND, user.email, 'db');
+            var command = underTest.command(EVENTS.DB.USERS.FINDBYEMAIL, user.email, 'db');
 
             // THEN
             command.then(resolve);
         });
 
-        it("should remove newly added user by id", function (done) {
+        it("should modify newly added user", function (done) {
+            // GIVEN
+            user.name = "John Dope";
+            var resolve = jasmine.createSpy().and.callFake(function (result) {
+                expect(result).toEqual({
+                    ok: 1,
+                    nModified: 1,
+                    n: 1
+                });
+                done();
+            });
+
+            // WHEN
+            var command = underTest.command(EVENTS.DB.USERS.UPDATE, user, 'db');
+
+            // THEN
+            command.then(resolve);
+        });
+
+        it("should find newly added user by id", function (done) {
+            // GIVEN
+            var resolve = jasmine.createSpy().and.callFake(function (result) {
+                expect(result).toEqual(user);
+                done();
+            });
+
+            // WHEN
+            var command = underTest.command(EVENTS.DB.USERS.FIND, user._id, 'db');
+
+            // THEN
+            command.then(resolve);
+        });
+
+        it("should remove newly added user", function (done) {
             // GIVEN
             var resolve = jasmine.createSpy().and.callFake(function (result) {
                 expect(result.ok).toBe(1);
@@ -83,6 +116,74 @@ describe("Database Integration Test", function () {
             // THEN
             command.then(resolve);
         });
+    });
+
+    describe("config managment", function () {
+
+        var config = models.cameraFactory('test');
+
+        it("should add new config", function (done) {
+            // GIVEN
+            var resolve = jasmine.createSpy().and.callFake(function (result) {
+                config._id = result._id;
+                expect(result).toEqual(config);
+                done();
+            });
+
+            // WHEN
+            var command = underTest.command(EVENTS.DB.CONFIG.ADD, config, 'db');
+
+            // THEN
+            command.then(resolve);
+        });
+
+        it("should modify newly added config", function (done) {
+            // GIVEN
+            config.imagelog.status = true;
+            var resolve = jasmine.createSpy().and.callFake(function (result) {
+                expect(result).toEqual({
+                    ok: 1,
+                    nModified: 1,
+                    n: 1
+                });
+                done();
+            });
+
+            // WHEN
+            var command = underTest.command(EVENTS.DB.CONFIG.UPDATE, config, 'db');
+
+            // THEN
+            command.then(resolve);
+        });
+
+        it("should find newly added config by id", function (done) {
+            // GIVEN
+            var resolve = jasmine.createSpy().and.callFake(function (result) {
+                expect(result).toEqual(config);
+                done();
+            });
+
+            // WHEN
+            var command = underTest.command(EVENTS.DB.CONFIG.FIND, config._id, 'db');
+
+            // THEN
+            command.then(resolve);
+        });
+
+        it("should remove newly added config", function (done) {
+            // GIVEN
+            var resolve = jasmine.createSpy().and.callFake(function (result) {
+                expect(result.ok).toBe(1);
+                done();
+            });
+
+            // WHEN
+            var command = underTest.command(EVENTS.DB.CONFIG.REMOVE, config, 'db');
+
+            // THEN
+            command.then(resolve);
+        });
+
     });
 
 });
