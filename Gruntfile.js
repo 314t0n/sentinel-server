@@ -72,13 +72,24 @@ module.exports = function (grunt) {
             your_target: {
                 // target specific options
                 options: {
-                    useHelpers: true
+                    useHelpers: true,
+                    defaultTimeout: 2*10*1000,
                 },
                 // spec files
                 specs: [
                     'spec/integration-test/**/*.js',
                     'lib/**/spec/**/*.js',
                     'spec/**/*.js'
+                ]
+            },
+            acceptance: {
+                // target specific options
+                options: {
+                    useHelpers: true
+                },
+                // spec files
+                specs: [
+                    'spec/acceptance/**/*.js',
                 ]
             }
         }
@@ -89,7 +100,33 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-jasmine-nodejs');
     grunt.loadNpmTasks('grunt-contrib-watch');
 
-    // Default task.
     grunt.registerTask('default', ['jshint']);
+
+    var server;
+
+    grunt.registerTask('acceptance-setup', 'Setup server.', function () {
+        grunt.log.writeln('Setup server');
+        server = require('sentinel-restapi')();
+        var done = this.async();
+        server.start(done);
+    });
+
+    grunt.registerTask('acceptance-run', 'Run acceptance tests.', function () {
+        try {
+            grunt.task.run('jasmine_nodejs:acceptance');
+        }catch(e){
+            grunt.log.writeln(e);
+        }
+    });
+
+    grunt.registerTask('acceptance-teardown', 'Teardown server.', function () {
+        grunt.log.writeln('Teardown server');
+        if(server) {
+            var done = this.async();
+            server.stop(done);
+        }
+    });
+
+    grunt.registerTask('acceptance-test', ['acceptance-setup', 'acceptance-run', 'acceptance-teardown']);
 
 };
