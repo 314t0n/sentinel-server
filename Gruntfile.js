@@ -73,7 +73,7 @@ module.exports = function (grunt) {
                 // target specific options
                 options: {
                     useHelpers: true,
-                    defaultTimeout: 2*10*1000,
+                    defaultTimeout: 2 * 10 * 1000,
                 },
                 // spec files
                 specs: [
@@ -108,22 +108,26 @@ module.exports = function (grunt) {
         grunt.log.writeln('Setup server');
         server = require('sentinel-restapi')();
         var done = this.async();
-        server.start(done);
+        server.start()
+            .then(done)
+            .catch(grunt.log.writeln);
     });
 
     grunt.registerTask('acceptance-run', 'Run acceptance tests.', function () {
         try {
             grunt.task.run('jasmine_nodejs:acceptance');
-        }catch(e){
+        } catch (e) {
             grunt.log.writeln(e);
         }
     });
 
     grunt.registerTask('acceptance-teardown', 'Teardown server.', function () {
         grunt.log.writeln('Teardown server');
-        if(server) {
+        if (server) {
             var done = this.async();
-            server.stop(done);
+            server.stop()
+                .then(done)
+                .catch(grunt.log.writeln);
         }
     });
 

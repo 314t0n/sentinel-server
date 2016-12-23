@@ -13,7 +13,8 @@
     "bluebird": "^3.4.6",
     "httperrors": "^2.1.0",
     "jsonwebtoken": "^7.1.9",
-    "rest-api-errors": "^1.2.1"
+    "rest-api-errors": "^1.2.1",
+    "servicelocator": "^1.0.0"
   },
   "devDependencies": {
     "frisby": "^0.8.5",

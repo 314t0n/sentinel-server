@@ -7,22 +7,21 @@ describe("Commnuication Integration Test", function () {
     var ROLES = {
         A: 'testA',
         B: 'testB'
-    }
+    };
 
     var underTestA;
     var underTestB;
-    // setup undertest objects asynchronously
-    beforeEach(function (done) {
-        communicationFactory.createAsync({role: ROLES.A, isbase: true}, function (err, communication) {
-            underTestA = communication;
 
-            communicationFactory.createAsync({role: ROLES.B}, function (err, communication) {
+    beforeEach(function (done) {
+        communicationFactory.create({role: ROLES.A, isbase: true}).then(function (communication) {
+            underTestA = communication;
+            communicationFactory.create({role: ROLES.B}).then(function (communication) {
                 underTestB = communication;
                 done();
             });
         });
     });
-    // close undertest objects asynchronously
+
     afterEach(function (done) {
         underTestA.close(function () {
             underTestB.close(function () {
@@ -61,7 +60,7 @@ describe("Commnuication Integration Test", function () {
                     A: 'toA',
                     B: 'toB'
                 }
-            }
+            };
 
             // WHEN
             underTestA.on(EVENTS.TO.A, ROLES.A, function (params, response) {

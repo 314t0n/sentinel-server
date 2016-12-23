@@ -1,12 +1,15 @@
-var PersistenceServiceFactory = require('sentinel-persistence');
+var PersistenceService = require('sentinel-persistence')();
 var EVENTS = require('sentinel-communication').EVENTS;
 var models = require('sentinel-communication').models;
 var communicationFactory = require('sentinel-communication').communicationFactory();
+var Logger = require('sentinel-utils').logger.app;
 
-var connection = {
+var COMMUNICATION_OPTIONS = {
     type: 'http',
     port: '8001',
-    host: 'localhost'
+    host: 'localhost',
+    role: 'test',
+    isbase: true
 };
 
 describe("Database Integration Test", function () {
@@ -14,23 +17,21 @@ describe("Database Integration Test", function () {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000 * 10 * 2;
 
     var underTest; // communication
-    var persistenceService;
-    // setup undertest objects asynchronously
-    beforeEach(function (done) {
-        communicationFactory.createAsync({role: 'test', isbase: true}, function (err, communication) {
-            underTest = communication;
-            PersistenceServiceFactory.createService({role: 'db'}, {}, function (service) {
-                persistenceService = service;
-                done();
-            });
-        });
+
+    beforeAll(function (done) {
+        Logger.debug('Setup services for test suite.');
+        communicationFactory.create(COMMUNICATION_OPTIONS)
+                .then(function (communication) {
+                    underTest = communication;
+                    PersistenceService.start({role: 'db'}, {})
+                            .then(done);
+                });
     });
 
-    afterEach(function (done) {
-        underTest.close(function () {
-            persistenceService.close();
-            done();
-        });
+    afterAll(function (done) {
+        Logger.debug('Teardown services for test suite.');
+        Promise.all([underTest.close(), PersistenceService.close()])
+                .then(done).catch(done);
     });
 
     describe("user managment", function () {
@@ -43,7 +44,7 @@ describe("Database Integration Test", function () {
 
         it("should add new user", function (done) {
             // GIVEN
-            var resolve = jasmine.createSpy().and.callFake(function (result) {
+            var resolve = jasmine.createSpy().and.callFake(function (result) {          
                 user._id = result._id;
                 expect(result).toEqual(user);
                 done();
@@ -53,7 +54,7 @@ describe("Database Integration Test", function () {
             var command = underTest.command(EVENTS.DB.USERS.ADD, user, 'db');
 
             // THEN
-            command.then(resolve);
+            command.then(resolve).catch(Logger.error);
         });
 
         it("should find newly added user by email", function (done) {
