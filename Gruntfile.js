@@ -157,7 +157,7 @@ module.exports = function (grunt) {
         grunt.log.writeln('Teardown server');
         if (server) {
             var done = this.async();
-            Promise.all([persistenceService.stop(), server.stop()])
+            Promise.all([persistenceService.close(), server.stop()])
                     .then(done)
                     .catch(grunt.log.writeln);
         }
