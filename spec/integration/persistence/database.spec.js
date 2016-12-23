@@ -23,7 +23,7 @@ describe("Database Integration Test", function () {
         communicationFactory.create(COMMUNICATION_OPTIONS)
                 .then(function (communication) {
                     underTest = communication;
-                    PersistenceService.start({role: 'db'}, {})
+                    PersistenceService.start({role: 'db', databaseUrl:'localhost:27017/test'}, {})
                             .then(done);
                 });
     });

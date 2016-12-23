@@ -10,6 +10,7 @@
     "chai": "^3.5.0",
     "frisby": "^0.8.5",
     "grunt": "^1.0.1",
+    "grunt-clear": "^0.2.1",
     "grunt-contrib-jshint": "^1.0.0",
     "grunt-contrib-watch": "^1.0.0",
     "grunt-jasmine-nodejs": "^1.5.4",
@@ -18,6 +19,8 @@
     "karma-firefox-launcher": "^1.0.0",
     "karma-jasmine": "^1.1.0",
     "karma-phantomjs-launcher": "^1.0.2",
-    "request": "^2.79.0"
+    "mongodb": "^2.2.16",
+    "request": "^2.79.0",
+    "tingodb": "^0.5.1"
   }
 }
