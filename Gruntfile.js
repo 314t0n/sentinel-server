@@ -102,6 +102,20 @@ module.exports = function (grunt) {
                     'spec/integration/**/*.js',
                 ]
             }
+        },
+        shell: {
+            mongodb: {
+                command: 'mongo.bat --dbpath c:\\data\\db\\',
+            },
+            options: {
+                async: true,
+                stdout: true,
+                stderr: true,
+                failOnError: true,
+                execOptions: {
+                    cwd: '.'
+                }
+            }
         }
     });
 
@@ -110,6 +124,8 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-jasmine-nodejs');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-clear');
+    grunt.loadNpmTasks('grunt-shell');
+    grunt.loadNpmTasks('grunt-shell-spawn');
 
     grunt.registerTask('default', ['jshint']);
 
@@ -120,10 +136,14 @@ module.exports = function (grunt) {
 
     grunt.registerTask('testdb-setup', 'Setup test db.', function () {
         var done = this.async();
-        testDb = require('./spec/testdb')();
-        testDb.start()
-                .then(done)
-                .catch(grunt.log.writeln);
+        var waitForMongo = require('wait-for-mongo');
+        grunt.log.writeln('waiting for mongo ...')
+        waitForMongo('mongodb://localhost:27017/test', {timeout: 1000 * 60 * 2}, function (err) {            
+            testDb = require('./spec/testdb')();
+            testDb.start()
+                    .then(done)
+                    .catch(grunt.log.writeln);
+        });
     });
 
     grunt.registerTask('testdb-teardown', 'Teardown test db.', function () {
@@ -162,8 +182,8 @@ module.exports = function (grunt) {
                     .catch(grunt.log.writeln);
         }
     });
-    
-     grunt.registerTask('integration-run', 'Run integration tests.', function () {
+
+    grunt.registerTask('integration-run', 'Run integration tests.', function () {
         try {
             grunt.task.run('jasmine_nodejs:integration');
         } catch (e) {
@@ -171,7 +191,7 @@ module.exports = function (grunt) {
         }
     });
 
-    grunt.registerTask('acceptance-test', ['clear', 'testdb-setup', 'acceptance-setup', 'acceptance-run', 'acceptance-teardown', 'testdb-teardown']);
-    grunt.registerTask('integration-test', ['clear', 'testdb-setup', 'integration-run', 'testdb-teardown']);
+    grunt.registerTask('acceptance-test', ['clear', 'shell:mongodb', 'testdb-setup', 'acceptance-setup', 'acceptance-run', 'acceptance-teardown', 'testdb-teardown', 'shell:mongodb:kill']);
+    grunt.registerTask('integration-test', ['clear', 'shell:mongodb', 'testdb-setup', 'integration-run', 'testdb-teardown']);
 
 };
